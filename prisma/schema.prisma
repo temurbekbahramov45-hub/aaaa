@@ -1,0 +1,63 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  nameUz      String
+  nameRu      String
+  description String?
+  price       Float
+  image       String?
+  discount    Float?   // Discount percentage (0-100)
+  category    String   // Category name
+  available   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  orderItems  OrderItem[]
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  customerName    String?
+  customerPhone   String?
+  deliveryAddress String
+  paymentMethod   String      // "Naqd pul" or "Karta orqali"
+  totalPrice      Float
+  status          String      @default("pending") // pending, confirmed, delivered
+  createdAt       DateTime    @default(now())
+  
+  orderItems      OrderItem[]
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Float   // Price at time of purchase
+  discount  Float?  // Discount at time of purchase
+  
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model AdminUser {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String   // In production, this should be hashed
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
